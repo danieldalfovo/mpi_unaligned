@@ -1,4 +1,4 @@
-# Project Name
+# Unaligned
 TouchDesigner software to ...
 
 ## General setup
@@ -6,4 +6,4 @@ TouchDesigner is used to ...
 
 ## Necessary Software
 ### On the PC
-- TouchDesigner XXXX.xxxxx
+- TouchDesigner 2025.32280
