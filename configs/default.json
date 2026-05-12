@@ -1,0 +1,19 @@
+{
+  "Show": {
+    "name": "Elli",
+    "scheduled": false
+  },
+  "Logger": {
+    "level": "DEBUG",
+    "log_to_console": true,
+    "log_to_file": false,
+    "log_file_location": "../logs"
+  },
+  "CompManager": {
+    "root": "/",
+    "folder": "../modules",
+    "nested_folder": false,
+    "tag": "pi_suspect",
+    "auto_save": false
+  }
+}
