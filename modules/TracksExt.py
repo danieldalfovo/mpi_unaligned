@@ -18,110 +18,85 @@ class TracksExt:
 	def __init__(self, ownerComp):
 		# The component to which this extension is attached
 		self.ownerComp = ownerComp
-
+		
 		self.Scenes = parent.Tracks.par.Scenes.eval()
 		self.DefaultScene = parent.Tracks.par.Defaultscene.eval()
+		
+		self.timer = op('timer1')
+		self.timer.par.initialize.pulse()
 
-		TDF.createProperty(self,'Track_A', value=self.DefaultScene, dependable=True, readOnly=False)
-		TDF.createProperty(self,'Track_B', value=self.DefaultScene, dependable=True, readOnly=False)
-
-		TDF.createProperty(self,'Fade',value=0,dependable=True,readOnly=False)
-
-	def CrossfadeToNewScene(self, scene):
-		if op.TRACKS.op('fading')[0] == 1:
-			self.Logger.Info("Still fading")
-			return
-		if self.Fade == 0:
-			self.Track_B = scene
-			scene.TurnOn()
-			scene.Activate(jump=False)
-			if self.Track_A.name != self.Track_B.name:
-				self.Track_A.Deactivate(jump=False)
-		else:
-			self.Track_A = scene
-			scene.TurnOn()
-			scene.Activate(jump=False)
-			if self.Track_A.name != self.Track_B.name:
-				self.Track_B.Deactivate(jump=False)
-		self.Fade = (self.Fade + 1) % 2
-		self.SetFilterTime(scene.par.Fade1)
-	
-	def SetFilterTime(self,time):
-		op('filter_fade').par.width = time
-
-	def GetTrack(self):
-		return [self.Track_A,self.Track_B][self.Fade]
-
-	def GetOffTrack(self):
-		return [self.Track_A,self.Track_B][(self.Fade+1)%2]
-	
-	def SetOffTrack(self,scene):
-		if self.Fade == 0:
-			self.Track_B = scene
-		else:
-			self.Track_A = scene
-
-	def SetScene(self,scene,track):
-		if track == 'a':
-			self.Track_A.Deactivate(jump=True)
-			self.Track_A.TurnOff()
-			self.Track_A = scene
-		elif track == 'b':
-			self.Track_B.Deactivate(jump=True)
-			self.Track_B.TurnOff()
-			self.Track_B = scene
+		TDF.createProperty(self, 'A', value=self.DefaultScene, dependable=True, readOnly=False)
+		TDF.createProperty(self, 'B', value=self.DefaultScene, dependable=True, readOnly=False)
+		
+	def SetScene(self, scene, track):
+		attr = track.upper()
+		getattr(self, attr).Deactivate(jump=True)
+		getattr(self, attr).TurnOff()
+		setattr(self, attr, scene)
 
 	def GetSceneById(self,id):
 		scene_ids = parent.Tracks.op('scene_ids')
 		scene_row = scene_ids.row(str(id))
 		scene_name = scene_row[2]
-		scene = self.Scenes.op(scene_name)
+		scene = op.SCENES.op(scene_name)
 		return scene
 
-	def GetSceneOnTrack(self,track):
-		scene = None
-		if track == 'a':
-			scene = self.Track_A
-		elif track == 'b':
-			scene = self.Track_B
-		return scene
+	def GetSceneOnTrack(self, track):
+		return getattr(self, track.upper(), None)
 
-	def CrossfadeToNewScene_old(self,scene):
-		self.InitTimer()
-		self.Track_B.TurnOff()
-		self.Track_B = self.Track_A
-		self.Track_B.Deactivate(jump=False)
-		self.Track_A = scene
+	def FadeToNewScene(self, scene, force=False):
+		if self._timer_active() and not force:
+			return self._warn("fade blocked: timer is active (pass force=True to override)")
+		self._toNewScene(scene, scene.par.Fade1.eval())
+
+	def JumpToNewScene(self, scene, force=False):
+		if self._timer_active() and not force:
+			return self._warn("jump blocked: timer is active (pass force=True to override)")
+		self._toNewScene(scene, 0)
+
+	def _toNewScene(self, scene, length):
+		self.B = self.A
+		self.B.Deactivate(jump=False)
+		self.A = scene
 		scene.TurnOn()
 		scene.Activate(jump=False)
-		
-	def FadeToNewScene(self,scene,track):
-		self.SetScene(scene=scene,track=track)
-		scene.TurnOn()
-		scene.Activate(jump=False)
+		self._init_timer(length)
 
-	def JumpToNewScene(self,scene,track):
-		self.SetScene(scene=scene,track=track)
-		scene.TurnOn()
-		scene.Activate(jump=True)
-	
-	def CrossfadeToNewSceneId(self,scene_id):
+	def FadeToNewSceneId(self, scene_id, force=False):
 		new_scene = self.GetSceneById(id=scene_id)
-		self.CrossfadeToNewScene(scene=new_scene)
-	
-	def FadeToNewSceneId(self,scene_id,track):
-		new_scene = self.GetSceneById(id=scene_id)
-		self.FadeToNewScene(scene=new_scene,track=track)
+		self.FadeToNewScene(new_scene, force=force)
 
-	def JumpToNewSceneId(self,scene_id,track):
+	def JumpToNewSceneId(self, scene_id, force=False):
 		new_scene = self.GetSceneById(id=scene_id)
-		self.JumpToNewScene(scene=new_scene,track=track)
+		self.JumpToNewScene(new_scene, force=force)
 
-	def InitTimer(self):
-		timer = op('timer1')
-		timer.par.length = self.Track_A.par.Fade1
-		timer.par.initialize.pulse()
-		timer.par.start.pulse()
+	def Fraction(self):
+		"""0..1 progress of the current fade/jump."""
+		return self.timer.fraction if self.timer else 0.0
+
+	def TransitionDone(self):
+		"""True when no fade/jump is currently in progress."""
+		return not self._timer_active()
+
+	def _timer_active(self):
+		"""True while the Timer CHOP is mid-fade (0 < fraction < 1)."""
+		return 0 < self.Fraction() < 1
+
+	def _warn(self, text):
+		lg = self.Logger
+		(lg.Warning if lg else print)("Tracks: " + text)
+
+	def _init_timer(self, length):
+		if length == 0:
+			length += 0.001
+		self.timer.par.length = length
+		self.timer.par.initialize.pulse()
+		self.timer.par.start.pulse()
+
+	def TimerDone(self):
+		if parent.Tracks.A.name != parent.Tracks.B.name:
+			self.B.TurnOff()
+			self.SetScene(parent.Tracks.DefaultScene, 'b')
 		
 	@property
 	def Logger(self):

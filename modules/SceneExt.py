@@ -19,25 +19,6 @@ class SceneExt:
 		# The component to which this extension is attached
 		self.ownerComp = ownerComp
 
-		# properties
-		#TDF.createProperty(self, 'MyProperty', value=0, dependable=True,
-		#				   readOnly=False)
-
-		# attributes:
-		#self.a = 0 # attribute
-		#self.B = 1 # promoted attribute
-
-		# stored items (persistent across saves and re-initialization):
-		#storedItems = [
-			# Only 'name' is required...
-		#	{'name': 'StoredProperty', 'default': None, 'readOnly': False,
-		#	 						'property': True, 'dependable': True},
-		#]
-		# Uncomment the line below to store StoredProperty. To clear stored
-		# 	items, use the Storage section of the Component Editor
-		
-		# self.stored = StorageManager(self, ownerComp, storedItems)
-
 		TDF.createProperty(self,'On',value=0,dependable=True,readOnly=False)
 		TDF.createProperty(self,'Active',value=0,dependable=True,readOnly=False)
 		
@@ -72,6 +53,6 @@ class SceneExt:
 
 	def PlayMe(self,jump):
 		if jump:
-			self.Tracks.JumpToNewScene(scene=parent.Scene,track='a')
+			self.Tracks.JumpToNewScene(scene=self.ownerComp)
 		else:
-			self.Tracks.CrossfadeToNewScene(scene=parent.Scene)
+			self.Tracks.FadeToNewScene(scene=self.ownerComp)

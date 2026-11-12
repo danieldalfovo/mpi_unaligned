@@ -1,0 +1,49 @@
+{
+  "Show": {
+    "name": "DIA",
+    "scheduled": false
+  },
+  "Logger": {
+    "level": "DEBUG",
+    "log_to_file": true,
+    "log_file_location": "../logs"
+  },
+  "CompManager": {
+    "root": "/",
+    "folder": "../Modules",
+    "nested_folder": false,
+    "tag": "pi_suspect",
+    "auto_save": false
+  },
+  "Controller":{
+    "message_type": "list",
+    "machinas": [
+      {"ip": "10.0.0.11", "name": "A-1"},
+      {"ip": "10.0.0.12", "name": "A-2"},
+      {"ip": "10.0.0.21", "name": "B-1"},
+      {"ip": "10.0.0.22", "name": "B-2"},
+      {"ip": "10.0.0.23", "name": "B-3"},
+      {"ip": "10.0.0.31", "name": "C-1"},
+      {"ip": "10.0.0.32", "name": "C-2"},
+      {"ip": "10.0.0.41", "name": "D-1"},
+      {"ip": "10.0.0.42", "name": "D-2"},
+      {"ip": "10.0.0.43", "name": "D-3"},
+      {"ip": "10.0.0.44", "name": "D-4"}
+
+    ]
+  },
+  "MovingLights": [
+    {"name": "ML_W_A_1", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_A_1", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_B_1", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_B_2", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_C_1", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_E_1", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_D_1", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_C_D_2", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_W_D_2", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_W_D_3", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_E_D_2", "position": [0, 0, 0], "rotation": 0.0},
+    {"name": "ML_E_D_3", "position": [0, 0, 0], "rotation": 0.0}
+  ]
+}
